@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests psutil
+      - run: python -m unittest discover -s tests -t .
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pyinstaller
+      - run: pyinstaller --noconfirm --clean --onefile --windowed --name LeagueTool --collect-data customtkinter main.py
+      - run: Rename-Item dist\LeagueTool.exe LeagueTool-windows-x64.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/LeagueTool-windows-x64.exe
+
+  macos:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            label: apple-silicon-arm64
+          - runner: macos-15-intel
+            label: intel-x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pyinstaller
+      - name: Build the app bundle
+        run: pyinstaller --noconfirm --clean --windowed --name LeagueTool --osx-bundle-identifier com.leaguetool.app --collect-data customtkinter main.py
+      - name: Check the architecture
+        run: lipo -archs dist/LeagueTool.app/Contents/MacOS/LeagueTool
+      - name: Create the DMG
+        run: |
+          mkdir dmg
+          cp -R dist/LeagueTool.app dmg/
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname "League Tool" -srcfolder dmg -ov -format UDZO "LeagueTool-macOS-${{ matrix.label }}.dmg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.label }}
+          path: LeagueTool-macOS-${{ matrix.label }}.dmg
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: artifacts/*
