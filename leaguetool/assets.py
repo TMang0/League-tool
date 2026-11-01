@@ -2,8 +2,10 @@
 import io
 import json
 import queue
+import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import customtkinter as ctk
 import requests
@@ -15,12 +17,20 @@ DDRAGON = "https://ddragon.leagueoflegends.com"
 CACHE_DIR = APP_DIR / "cache"
 
 
+def app_icon_path():
+    """assets/icon.png, both from source and inside a PyInstaller bundle."""
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+    path = base / "assets" / "icon.png"
+    return path if path.exists() else None
+
+
 class Assets:
     def __init__(self, locale="es_MX"):
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         self.locale = locale
         self.version = None
-        self.champions = {}  # id -> {"id": int, "key": str, "name": str}
+        self.champions = {}  # id -> {"id", "key", "name", "tags", "info"}
+        self.items = {}  # item id -> localized name
         self.trees = []  # runesReforged
         self.perks = {}  # perk id -> perk dict
         self.ready = False
@@ -72,11 +82,22 @@ class Assets:
         runes = self._fetch_json(
             f"{DDRAGON}/cdn/{self.version}/data/{locale}/runesReforged.json", f"runes_{locale}.json"
         )
+        items = self._fetch_json(
+            f"{DDRAGON}/cdn/{self.version}/data/{locale}/item.json", f"items_{locale}.json"
+        )
         if champions:
             self.champions = {
-                int(c["key"]): {"id": int(c["key"]), "key": c["id"], "name": c["name"]}
+                int(c["key"]): {
+                    "id": int(c["key"]),
+                    "key": c["id"],
+                    "name": c["name"],
+                    "tags": c.get("tags", []),
+                    "info": c.get("info", {}),
+                }
                 for c in champions["data"].values()
             }
+        if items:
+            self.items = {int(item_id): item["name"] for item_id, item in items["data"].items()}
         if runes:
             self.trees = runes
             self.perks = {
@@ -91,6 +112,9 @@ class Assets:
         champion = self.champions.get(champion_id)
         return champion["name"] if champion else f"#{champion_id}"
 
+    def item_name(self, item_id):
+        return self.items.get(item_id, f"#{item_id}")
+
     def sorted_champions(self):
         return sorted(self.champions.values(), key=lambda c: c["name"].casefold())
 
@@ -100,6 +124,11 @@ class Assets:
         if champion and self.version:
             url = f"{DDRAGON}/cdn/{self.version}/img/champion/{champion['key']}.png"
             self._bind(widget, url, f"champ_{self.version}_{champion['key']}.png", size)
+
+    def item_icon(self, widget, item_id, size):
+        if item_id and self.version:
+            url = f"{DDRAGON}/cdn/{self.version}/img/item/{item_id}.png"
+            self._bind(widget, url, f"item_{self.version}_{item_id}.png", size)
 
     def tree_icon(self, widget, tree, size, dim=False):
         self._bind(widget, f"{DDRAGON}/cdn/img/{tree['icon']}", f"tree_{tree['id']}.png", size, dim)

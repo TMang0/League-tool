@@ -60,6 +60,129 @@ class SettingsPage(ctk.CTkScrollableFrame):
             self._switch(behaviour, t(f"set.{key}"), t(f"set.{key}.desc"), setting, settings)
         ctk.CTkFrame(behaviour, fg_color="transparent", height=10).pack()
 
+        overlay = theme.card(self)
+        overlay.pack(fill="x", pady=(0, 14))
+        ctk.CTkLabel(overlay, text=t("set.overlay_section"), font=font(15, "bold"), text_color=theme.GOLD).pack(
+            anchor="w", padx=20, pady=(16, 4)
+        )
+        self._overlay_switch(overlay)
+        self._opacity_slider(overlay)
+        self._hotkey_row(overlay)
+        ctk.CTkFrame(overlay, fg_color="transparent", height=10).pack()
+
+        riot = theme.card(self)
+        riot.pack(fill="x", pady=(0, 14))
+        ctk.CTkLabel(riot, text=t("set.riot_section"), font=font(15, "bold"), text_color=theme.GOLD).pack(
+            anchor="w", padx=20, pady=(16, 0)
+        )
+        theme.muted_label(riot, t("set.riot.desc"), 11).pack(anchor="w", padx=20, pady=(0, 6))
+        row = ctk.CTkFrame(riot, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=(0, 14))
+        entry = ctk.CTkEntry(row, width=280, font=font(12), show="•",
+                             placeholder_text=t("set.riot.placeholder"))
+        if self.app.cfg.data["riot"]["api_key"]:
+            entry.insert(0, self.app.cfg.data["riot"]["api_key"])
+        entry.pack(side="left")
+
+        def apply():
+            self.app.set_riot_key(entry.get())
+            status.configure(
+                text=t("set.riot.saved" if self.app.riot.available else "set.riot.missing"),
+                text_color=theme.OK if self.app.riot.available else theme.WARN,
+            )
+
+        theme.ghost_button(row, t("set.hotkey.apply"), apply, width=70).pack(side="left", padx=10)
+        entry.bind("<Return>", lambda _e: apply())
+        status = ctk.CTkLabel(
+            row,
+            text=t("set.riot.ok" if self.app.riot.available else "set.riot.missing"),
+            font=font(11),
+            text_color=theme.OK if self.app.riot.available else theme.WARN,
+        )
+        status.pack(side="left")
+
+    def _overlay_switch(self, parent):
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=7)
+        text = ctk.CTkFrame(row, fg_color="transparent")
+        text.pack(side="left")
+        ctk.CTkLabel(text, text=t("set.overlay"), font=font(14, "bold"), text_color=theme.TEXT).pack(anchor="w")
+        theme.muted_label(text, t("set.overlay.desc"), 11).pack(anchor="w")
+        switch = ctk.CTkSwitch(
+            row,
+            text="",
+            width=46,
+            progress_color=theme.TEAL,
+            command=lambda: self.app.set_overlay_enabled(bool(switch.get())),
+        )
+        switch.pack(side="right")
+        if self.app.cfg.data["overlay"]["enabled"]:
+            switch.select()
+
+    def _opacity_slider(self, parent):
+        cfg = self.app.cfg.data["overlay"]
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=8)
+        ctk.CTkLabel(row, text=t("set.opacity"), font=font(13), text_color=theme.TEXT).pack(side="left")
+        value = ctk.CTkLabel(
+            row, text=f"{int(cfg['opacity'] * 100)}%", font=font(13, "bold"), text_color=theme.TEAL, width=50
+        )
+        value.pack(side="right")
+
+        def changed(raw):
+            cfg["opacity"] = round(float(raw) * 20) / 20
+            value.configure(text=f"{int(cfg['opacity'] * 100)}%")
+            self.app.cfg.save()
+            if self.app.overlay:
+                self.app.overlay.attributes("-alpha", cfg["opacity"])
+
+        slider = ctk.CTkSlider(
+            row,
+            from_=0.4,
+            to=1.0,
+            number_of_steps=12,
+            width=240,
+            progress_color=theme.TEAL,
+            button_color=theme.GOLD,
+            button_hover_color="#dcc184",
+            command=changed,
+        )
+        slider.set(cfg["opacity"])
+        slider.pack(side="right", padx=14)
+
+    def _hotkey_row(self, parent):
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=8)
+        ctk.CTkLabel(row, text=t("set.hotkey"), font=font(13), text_color=theme.TEXT).pack(side="left")
+        warning = ctk.CTkLabel(row, text="", font=font(11), text_color=theme.DANGER)
+        warning.pack(side="right", padx=(0, 8))
+
+        def apply():
+            combo = entry.get().strip()
+            if self.app.set_hotkey(combo):
+                entry.delete(0, "end")
+                entry.insert(0, self.app.cfg.data["overlay"]["hotkey"])
+                warning.configure(text="")
+            else:
+                warning.configure(text=t("set.hotkey.invalid"))
+
+        button = ctk.CTkButton(
+            row,
+            text=t("set.hotkey.apply"),
+            width=70,
+            font=font(12, "bold"),
+            fg_color=theme.CARD_ALT,
+            hover_color=theme.BORDER,
+            text_color=theme.TEXT,
+            corner_radius=8,
+            command=apply,
+        )
+        button.pack(side="right", padx=(8, 0))
+        entry = ctk.CTkEntry(row, width=150, font=font(12))
+        entry.insert(0, self.app.cfg.data["overlay"]["hotkey"])
+        entry.bind("<Return>", lambda _e: apply())
+        entry.pack(side="right")
+
     def _slider(self, parent, label, key, low, high, settings):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x", padx=20, pady=8)

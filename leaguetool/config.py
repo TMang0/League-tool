@@ -48,6 +48,11 @@ def default_config():
         },
         "profiles": profiles,
         "rune_presets": {},
+        "overlay": {
+            "enabled": True, "opacity": 0.92, "hotkey": "ctrl+shift+l",
+            "x": None, "y": None, "compact": True,
+        },
+        "riot": {"api_key": ""},
     }
 
 

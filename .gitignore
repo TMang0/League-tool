@@ -5,5 +5,8 @@ dist/
 *.spec
 .venv/
 venv/
+.env
+*.env
+docs/
 .idea/
 .vscode/

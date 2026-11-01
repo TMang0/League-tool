@@ -12,6 +12,10 @@ A desktop app (Python + CustomTkinter) that automates the pre-game phase of the 
 - **Summoner spells** per role.
 - **Runes**: your own presets (assignable to a role or to specific champions) or the **runes recommended by the client itself**. Order: champion preset → client recommendation → role preset. Written to a page named `LT - <name>`; if you have no free rune slot, that page replaces your last editable one (can be turned off in Settings).
 - Per-role lists (Top, Jungle, Mid, ADC, Support); a role without a list uses **Default**.
+- **Live suggestions while you play** (local Live Client API, no Riot key needed): who to focus and why, objective reminders (dragons, Voidgrubs, Herald, Baron) and situational items based on the enemy team composition. Shown in the **Live** tab and in a small always-on-top overlay you can toggle with `Ctrl+Shift+L` (configurable in Settings). Play in **borderless mode** — exclusive fullscreen blocks every app's overlay.
+- **Adaptive builds**: a core build for your champion class (marksman, assassin, mage, fighter, tank, support…) plus boots that adapt to the enemy team — Mercury's against heavy CC/AP, Steelcaps against heavy AD — followed by the situational items. Recommendations track the game: what you already bought drops off (including component→upgrade), composition items unlock after laning phase, and full builds get an elixir reminder. Always in the overlay's items section.
+- **Enemy scouting on the loading screen** (needs a Riot API key in Settings): for each rival you see their Riot ID, solo-queue rank with LP and winrate, and their mastery with the champion they picked. Results are cached, so dodged lobbies don't waste the rate limit.
+- **Post-game analysis** (Riot API): when the match ends, the **Analysis** tab shows your KDA, damage share, CS/min, vision, team gold difference at minute 15, automatic highlights (what went well and what to improve) and the full 10-player scoreboard.
 - **English and Spanish** UI, switchable in Settings.
 
 ## Download
@@ -33,7 +37,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Open the League client whenever you like; the app detects it by itself. Champion and rune data is downloaded from Data Dragon (internet needed the first time, cached afterwards). Settings are stored in `%LOCALAPPDATA%\LeagueTool\config.json` (Windows) or `~/Library/Application Support/LeagueTool/config.json` (macOS).
+Open the League client whenever you like; the app detects it by itself. Champion, item and rune data is downloaded from Data Dragon (internet needed the first time, cached afterwards). Settings are stored in `%LOCALAPPDATA%\LeagueTool\config.json` (Windows) or `~/Library/Application Support/LeagueTool/config.json` (macOS).
 
 Tests (no client needed): `python -m unittest discover -s tests -t .`
 
@@ -56,6 +60,10 @@ Aplicación de escritorio (Python + CustomTkinter) que automatiza la fase previa
 - **Hechizos de invocador** según el rol.
 - **Runas**: presets propios (asignables a un rol o a campeones concretos) o las **runas recomendadas por el propio cliente**. Orden: preset del campeón → recomendación del cliente → preset del rol. Se escriben en una página llamada `LT - <nombre>`; si no tienes hueco libre, esa página reemplaza tu última página editable (se puede desactivar en Ajustes).
 - Listas por rol (Top, Jungla, Mid, ADC, Support); un rol sin lista usa **Predeterminado**.
+- **Sugerencias en tiempo real mientras juegas** (Live Client API local, sin clave de Riot): a quién focusear y por qué, recordatorios de objetivos (dragones, Voidgrubs, Heraldo, Barón) e ítems situacionales según la composición enemiga. Se ven en la pestaña **En vivo** y en un pequeño overlay siempre visible que se muestra/oculta con `Ctrl+Shift+L` (configurable en Ajustes). Juega en **modo sin bordes**: la pantalla completa exclusiva bloquea el overlay de cualquier app.
+- **Builds adaptativas**: build núcleo según la clase de tu campeón (tirador, asesino, mago, luchador, tanque, apoyo…) más botas que se adaptan al equipo rival — Mercurio contra mucho CC/AP, Punteras de acero contra mucho AD — seguidas de los ítems situacionales. Las recomendaciones siguen la partida: lo que ya compraste desaparece (incluido componente→mejora), los ítems de composición se activan tras la fase de líneas y con build completa te recuerda el elixir. Siempre en la sección de ítems del overlay.
+- **Info de rivales en la pantalla de carga** (requiere una clave de Riot API en Ajustes): para cada rival ves su Riot ID, su rango en soloq con LP y winrate, y su maestría con el campeón que eligió. Los resultados se cachean, así que las salas canceladas no gastan tu límite de peticiones.
+- **Análisis post-partida** (Riot API): al terminar la partida, la pestaña **Análisis** muestra tu KDA, % de daño de tu equipo, CS/min, visión, diferencia de oro de equipo al minuto 15, puntos clave automáticos (qué salió bien y qué mejorar) y el marcador completo de los 10 jugadores.
 - Interfaz en **español e inglés**, cambiable en Ajustes.
 
 ## Descarga
@@ -77,7 +85,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Abre el cliente de League cuando quieras; la app lo detecta sola. Los datos de campeones y runas se descargan de Data Dragon (internet la primera vez, luego quedan en caché). La configuración se guarda en `%LOCALAPPDATA%\LeagueTool\config.json` (Windows) o `~/Library/Application Support/LeagueTool/config.json` (macOS).
+Abre el cliente de League cuando quieras; la app lo detecta sola. Los datos de campeones, ítems y runas se descargan de Data Dragon (internet la primera vez, luego quedan en caché). La configuración se guarda en `%LOCALAPPDATA%\LeagueTool\config.json` (Windows) o `~/Library/Application Support/LeagueTool/config.json` (macOS).
 
 Tests (sin cliente): `python -m unittest discover -s tests -t .`
 
