@@ -110,13 +110,24 @@ class App(ctk.CTk):
         sidebar.grid_propagate(False)
         sidebar.rowconfigure(10, weight=1)
 
+        icon_path = assets.app_icon_path()
+        if icon_path:
+            from PIL import Image
+
+            emblem = ctk.CTkImage(light_image=Image.open(icon_path), dark_image=Image.open(icon_path),
+                                  size=(52, 52))
+            ctk.CTkLabel(sidebar, text="", image=emblem).grid(row=0, column=0, sticky="w", padx=24, pady=(24, 8))
+            title_row = 1
+        else:
+            title_row = 0
         ctk.CTkLabel(sidebar, text="LEAGUE", font=font(26, "bold"), text_color=theme.GOLD).grid(
-            row=0, column=0, sticky="w", padx=26, pady=(30, 0)
+            row=title_row, column=0, sticky="w", padx=26, pady=(0, 0)
         )
         ctk.CTkLabel(sidebar, text="T O O L", font=font(13, "bold"), text_color=theme.TEAL).grid(
-            row=1, column=0, sticky="w", padx=28, pady=(0, 28)
+            row=title_row + 1, column=0, sticky="w", padx=28, pady=(0, 24)
         )
         self.nav_buttons = {}
+        nav_start = title_row + 2
         for index, key in enumerate(NAV_KEYS):
             button = ctk.CTkButton(
                 sidebar,
@@ -130,7 +141,7 @@ class App(ctk.CTk):
                 corner_radius=10,
                 command=lambda k=key: self.show(k),
             )
-            button.grid(row=2 + index, column=0, sticky="ew", padx=14, pady=3)
+            button.grid(row=nav_start + index, column=0, sticky="ew", padx=14, pady=3)
             self.nav_buttons[key] = button
 
         self.connection = ctk.CTkLabel(sidebar, text=t("app.waiting"), font=font(12, "bold"), text_color=theme.WARN)
@@ -307,6 +318,7 @@ class App(ctk.CTk):
 
 
 def run():
+    theme.load_private_fonts()
     app = App()
     icon_path = assets.app_icon_path()
     if icon_path:

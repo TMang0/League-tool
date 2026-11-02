@@ -73,6 +73,28 @@ class AnalysisPageTest(unittest.TestCase):
         page.update("unavailable", None)  # error states must not crash either
         page.destroy()
 
+    def test_timeline_collapsible(self):
+        from leaguetool.gui.analysis import AnalysisPage
+
+        page = AnalysisPage(self.app, self.app)
+        page.update("ok", _analysis())
+        self.assertFalse(page._timeline_content.winfo_manager())  # collapsed by default
+        preview = page._timeline_preview.cget("text")
+        self.assertIn("fin", preview)      # summary visible while collapsed
+        self.assertIn("objetivos", preview)
+        page._toggle_timeline()
+        self.assertTrue(page._timeline_content.winfo_manager())
+        self.assertFalse(page._timeline_preview.winfo_manager())  # preview hides when open
+        page._toggle_timeline()
+        self.assertFalse(page._timeline_content.winfo_manager())
+        self.assertTrue(page._timeline_preview.winfo_manager())
+        page.destroy()
+
+    def test_timeline_summary_empty(self):
+        from leaguetool.gui.analysis import AnalysisPage
+
+        self.assertEqual(AnalysisPage._timeline_summary([]), "")
+
 
 if __name__ == "__main__":
     unittest.main()

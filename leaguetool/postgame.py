@@ -31,6 +31,7 @@ def analyze_timeline(timeline, my_team_id, my_pid):
     rows = []
     my_cs = []
     my_deaths = []
+    kills = deaths = assists = 0
     lost_objectives = []  # (minute, name key)
     for minute, frame in enumerate(frames):
         pf = frame.get("participantFrames") or {}
@@ -47,12 +48,18 @@ def analyze_timeline(timeline, my_team_id, my_pid):
             etype = event.get("type")
             if etype == "CHAMPION_KILL":
                 if event.get("victimId") == my_pid:
+                    deaths += 1
                     events.append(("post.ev.death", {}, False))
                     my_deaths.append(minute)
-                elif event.get("killerId") == my_pid or my_pid in (
-                    event.get("assistingParticipantIds") or []
-                ):
-                    events.append(("post.ev.kill", {}, True))
+                else:
+                    if event.get("killerId") == my_pid:
+                        kills += 1
+                    if my_pid in (event.get("assistingParticipantIds") or []):
+                        assists += 1
+                    if event.get("killerId") == my_pid or my_pid in (
+                        event.get("assistingParticipantIds") or []
+                    ):
+                        events.append(("post.ev.kill", {}, True))
             elif etype == "ELITE_MONSTER_KILL":
                 mine = (event.get("killerTeamId") or (100 if (event.get("killerId") or 0) <= 5 else 200)) == my_team_id
                 key = MONSTER_KEYS.get(event.get("monsterType", ""))
@@ -67,7 +74,11 @@ def analyze_timeline(timeline, my_team_id, my_pid):
                     events.append(("post.ev.objective", {"what": key}, not lost))
                     if lost:
                         lost_objectives.append((minute, key))
-        rows.append({"minute": minute, "diff": diff, "cs": cs, "events": events})
+        rows.append({
+            "minute": minute, "diff": diff, "cs": cs, "events": events,
+            "gold": me.get("totalGold", 0), "level": me.get("level", 1),
+            "kda": (kills, deaths, assists),
+        })
 
     insights = _timeline_insights(rows, my_cs, my_deaths, lost_objectives)
     return rows, insights

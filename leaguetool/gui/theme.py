@@ -2,6 +2,8 @@ import sys
 
 import customtkinter as ctk
 
+from ..assets import asset_path
+
 BG = "#0a0e13"
 SIDEBAR = "#0e141b"
 CARD = "#141b24"
@@ -16,8 +18,30 @@ OK = "#3ddc97"
 WARN = "#f0b429"
 DANGER = "#e84057"
 
-FONT = {"win32": "Segoe UI", "darwin": "Helvetica Neue"}.get(sys.platform, "DejaVu Sans")
+_FALLBACK_FONT = {"win32": "Segoe UI", "darwin": "Helvetica Neue"}.get(sys.platform, "DejaVu Sans")
+FONT = _FALLBACK_FONT
 MONO_FONT = {"win32": "Consolas", "darwin": "Menlo"}.get(sys.platform, "DejaVu Sans Mono")
+
+
+def load_private_fonts():
+    """Registers the bundled Inter fonts for this process only (Windows GDI).
+
+    On other platforms the font files are not registered; the system fallback is used.
+    Safe to call before Tk starts.
+    """
+    global FONT
+    if sys.platform != "win32":
+        return
+    import ctypes
+
+    FR_PRIVATE = 0x10
+    loaded = 0
+    for name in ("Inter-Regular.ttf", "Inter-Bold.ttf"):
+        path = asset_path(f"fonts/{name}")
+        if path and ctypes.windll.gdi32.AddFontResourceExW(str(path), FR_PRIVATE, 0):
+            loaded += 1
+    if loaded:
+        FONT = "Inter"
 
 
 def font(size=13, weight="normal"):

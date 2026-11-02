@@ -173,12 +173,13 @@ class LiveOverlay(ctk.CTkToplevel):
 
         wrap = (WIDTHS[compact] - 30) - ICONS_PER_ROW * (ICON_SIZE + 2)
         if compact:
+            short = t(f"live.short.{_short_token(suggestion.text_key)}")
             if section == "focus":
-                content = suggestion.params.get("champion", t(suggestion.text_key, **suggestion.params))
+                content = f"{suggestion.params.get('champion', '?')} · {short}"
             elif section == "objectives":
                 content = t(suggestion.text_key, **suggestion.params)
             else:
-                content = ""
+                content = short
         else:
             content = t(suggestion.text_key, **suggestion.params)
             if suggestion.item_ids:
@@ -194,3 +195,11 @@ class LiveOverlay(ctk.CTkToplevel):
         self.update_idletasks()
         height = max(self.winfo_reqheight(), 70)
         self.geometry(f"{WIDTHS[self._compact]}x{height}+{self.winfo_x()}+{self.winfo_y()}")
+
+
+def _short_token(text_key):
+    """'live.focus.fed' -> 'fed', 'live.build.core.mage' -> 'core', 'live.item.mr' -> 'mr'."""
+    parts = text_key.removeprefix("live.").split(".")
+    if parts[0] == "build":
+        return parts[1]  # core / boots / elixir
+    return parts[-1]

@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt pyinstaller
-      - run: pyinstaller --noconfirm --clean --onefile --windowed --name LeagueTool --icon assets/icon.ico --add-data "assets/icon.png;assets" --collect-data customtkinter main.py
+      - run: pyinstaller --noconfirm --clean --onefile --windowed --name LeagueTool --icon assets/icon.ico --add-data "assets;assets" --collect-data customtkinter main.py
       - run: Rename-Item dist\LeagueTool.exe LeagueTool-windows-x64.exe
       - uses: actions/upload-artifact@v4
         with:
@@ -53,7 +53,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt pyinstaller
       - name: Build the app bundle
-        run: pyinstaller --noconfirm --clean --windowed --name LeagueTool --osx-bundle-identifier com.leaguetool.app --icon assets/icon.png --add-data "assets/icon.png:assets" --collect-data customtkinter main.py
+        run: pyinstaller --noconfirm --clean --windowed --name LeagueTool --osx-bundle-identifier com.leaguetool.app --icon assets/icon.png --add-data "assets:assets" --collect-data customtkinter main.py
       - name: Check the architecture
         run: lipo -archs dist/LeagueTool.app/Contents/MacOS/LeagueTool
       - name: Create the DMG

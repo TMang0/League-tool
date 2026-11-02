@@ -17,11 +17,15 @@ DDRAGON = "https://ddragon.leagueoflegends.com"
 CACHE_DIR = APP_DIR / "cache"
 
 
-def app_icon_path():
-    """assets/icon.png, both from source and inside a PyInstaller bundle."""
+def asset_path(relative):
+    """Path inside assets/, both from source and inside a PyInstaller bundle."""
     base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
-    path = base / "assets" / "icon.png"
+    path = base / "assets" / relative
     return path if path.exists() else None
+
+
+def app_icon_path():
+    return asset_path("icon.png")
 
 
 class Assets:

@@ -101,10 +101,10 @@ def rich_frame(minute, diff, my_cs, events=()):
     base = 5000 + minute * 400
     frames = {}
     for pid in range(1, 6):
-        frames[str(pid)] = {"totalGold": base + diff // 10,
+        frames[str(pid)] = {"totalGold": base + diff // 10, "level": min(18, 1 + minute // 2),
                             "minionsKilled": my_cs if pid == 1 else 0, "jungleMinionsKilled": 0}
     for pid in range(6, 11):
-        frames[str(pid)] = {"totalGold": base - diff // 10, "minionsKilled": 0,
+        frames[str(pid)] = {"totalGold": base - diff // 10, "level": 1, "minionsKilled": 0,
                             "jungleMinionsKilled": 0}
     return {"participantFrames": frames, "events": list(events)}
 
@@ -151,6 +151,23 @@ class TimelineTest(unittest.TestCase):
 
     def test_empty_timeline(self):
         self.assertEqual(analyze_timeline({}, 100, 1), ([], []))
+
+    def test_rows_track_gold_level_and_cumulative_kda(self):
+        frames = []
+        for m in range(10):
+            events = []
+            if m == 3:
+                events.append({"type": "CHAMPION_KILL", "killerId": 1, "victimId": 6})
+            if m == 4:
+                events.append({"type": "CHAMPION_KILL", "killerId": 7, "victimId": 1})
+            if m == 5:
+                events.append({"type": "CHAMPION_KILL", "killerId": 2, "victimId": 6,
+                               "assistingParticipantIds": [1]})
+            frames.append(rich_frame(m, 500, m * 6, events))
+        rows, _ = analyze_timeline({"info": {"frames": frames}}, 100, 1)
+        self.assertEqual(rows[9]["kda"], (1, 1, 1))  # kill min 3, death min 4, assist min 5
+        self.assertEqual(rows[9]["level"], 5)
+        self.assertGreater(rows[9]["gold"], 0)
 
     def test_match_analysis_includes_timeline(self):
         analysis = analyze_match(make_match(), rich_timeline(), MY_PUUID)
