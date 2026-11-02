@@ -16,6 +16,7 @@ from ..postgame import PostGame
 from ..riotapi import RiotClient, resolve_key
 from ..scouting import Scout
 from . import theme
+from . import onboarding
 from .analysis import AnalysisPage
 from .dashboard import DashboardPage
 from .live import LivePage
@@ -71,6 +72,7 @@ class App(ctk.CTk):
         self.set_hotkey(self.cfg.data["overlay"].get("hotkey", ""))
         self.protocol("WM_DELETE_WINDOW", self._close)
         self.after(100, self._poll)
+        self.after(500, lambda: onboarding.maybe_show(self))
 
     # ---- Layout ----------------------------------------------------
     def _build_ui(self, page_key):

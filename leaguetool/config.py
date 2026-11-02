@@ -53,6 +53,7 @@ def default_config():
             "x": None, "y": None, "compact": True,
         },
         "riot": {"api_key": ""},
+        "onboarding_shown": False,
     }
 
 
